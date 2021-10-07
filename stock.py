@@ -7,8 +7,9 @@ import json
 import threading
 from queue import Queue
 from decimal import Decimal
+from threadcustom import *
 
-
+#抓價格
 def GetStock(stocknum):
     try :
         stock = yf.Ticker(f"{stocknum}.TW")
@@ -21,6 +22,14 @@ def GetStock(stocknum):
     except :
         return 0
 
+
+#倒數計時器
+def counter(sec):
+    global flag
+    while sec > 0:
+        print('倒计时(s):',sec)
+        time.sleep(1)
+        sec = sec - 1
 
 #取週平均
 def Stockfive(stocknum):
@@ -119,6 +128,4 @@ def Gaptwenty(stocknum):
 
 
 if __name__ == "__main__" :
-    print("---teststart----")
-
-    
+    pass

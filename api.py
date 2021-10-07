@@ -7,6 +7,7 @@ from telegram.ext import Updater
 import logging
 from stock import *
 import threading
+from multiprocessing import Process
 import json
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -61,7 +62,7 @@ def showlist(update, context):
 
 
 def wloop(update, context):
-    text_caps = "-----------------------------"
+    text_caps = "--------------"
     while 1:
         context.bot.send_message(chat_id=update.effective_chat.id, text=text_caps)
 
@@ -90,11 +91,36 @@ def GetStockPrice(update, context):
     context.bot.send_message(chat_id=update.effective_chat.id, text=text_caps)
 
 
+
+flag = 1
+target = ["2330", "0056","00878", "0050"]
+q = Queue(maxsize=0)
+
 def PollingStock(update, context):
-    pass
-
-
-    context.bot.send_message(chat_id=update.effective_chat.id, text=text_caps)
+    global flag,target,q
+    sec  = ' '.join(context.args)
+    print(sec)
+    print(type(sec))
+    sec = int(sec)
+    p = Process(target=counter, args=(sec,))
+    p.start()
+    
+    #多執行緒
+    target = ["2330", "0056","00878", "0050"]
+    threads = []
+    for i,j in zip(target, range(0,len(target))) :
+        threads.append(threading.Thread(target = KGetStock, args = (i,)))
+        threads[j].start()
+    
+    #將flag 變 0 中斷 getstock 的 while loop
+    p.join()
+    flag = 0
+    print('Child process end.')
+    
+    for i in threads :
+        i.join()
+        print(f"{i} thread end. ")
+    context.bot.send_message(chat_id=update.effective_chat.id, text=q.get())
 
 
 start_handler = CommandHandler('start', start)
@@ -138,6 +164,7 @@ dispatcher.add_handler(getstock_handler)
 #輸入 /getstock
 poll_handler = CommandHandler('poll', PollingStock)
 dispatcher.add_handler(poll_handler)
+
 
 
 
